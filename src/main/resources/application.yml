@@ -12,6 +12,23 @@ logging:
 
 #spring
 spring:
+  # 9200端口是用来让HTTP REST API来访问ElasticSearch，而9300端口是传输层监听的默认端口
+  elasticsearch:
+    # 连接池
+    pool: 5
+    jest:
+      proxy:
+        port: 9300
+        host: localhost
+      connection-timeout: 3
+
+
+#elasticsearch:
+## 9200端口是用来让HTTP REST API来访问ElasticSearch，而9300端口是传输层监听的默认端口
+#  ip: localhost
+#  port: 9300
+#  poll: 5
+
 
 
 
