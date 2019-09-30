@@ -1,5 +1,8 @@
 package com.lq.repository;
 
+import com.lq.entity.Article;
+import org.springframework.data.elasticsearch.repository.ElasticsearchRepository;
+
 /**
  * Created with IntelliJ IDEA.
  * Description:
@@ -8,5 +11,6 @@ package com.lq.repository;
  * @Date: 2019-09-27
  * @Time: 17:17
  */
-public interface ArticleRepository {
+public interface ArticleRepository  {
+
 }

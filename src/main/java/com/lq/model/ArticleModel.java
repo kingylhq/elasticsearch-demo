@@ -1,5 +1,7 @@
 package com.lq.model;
 
+import java.util.Date;
+
 /**
  * Created with IntelliJ IDEA.
  * Description:
@@ -9,4 +11,11 @@ package com.lq.model;
  * @Time: 17:17
  */
 public class ArticleModel {
+
+    private String id;
+
+    private String title;
+
+    private Date createTime;
+
 }

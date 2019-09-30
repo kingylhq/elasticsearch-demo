@@ -1,4 +1,3 @@
-#
 server:
   port: 9999
   tomcat:
@@ -6,31 +5,34 @@ server:
     max-threads: 1000
     min-spare-threads: 30
 
-# 日志
 logging:
+  level:
+    com.fs.panfinance.core.dao: debug
+    org.springframework.data.mongodb.core: debug
+    org.springframework.data.neo4j.repository: debug
   config: classpath:logback-spring.xml
 
-#spring
 spring:
-  profiles:
-    active: dev
-  # 9200端口是用来让HTTP REST API来访问ElasticSearch，而9300端口是传输层监听的默认端口
-  elasticsearch:
-    # 连接池
-    pool: 5
-    jest:
-      proxy:
-        port: 9300
-        host: localhost
-      connection-timeout: 3
+  data:
+    # 9200 端口是用来让HTTP REST API来访问ElasticSearch，而9300端口是传输层监听的默认端口
+    elasticsearch:
+      cluster-name: my-application
+      # 配置es节点信息，逗号分隔，如果没有指定，则启动ClientNode
+      cluster-nodes: localhost:9300
+      repositories:
+        enabled: true
+#      properties:
+#        path:
+#          logs: ./elasticsearch/log #elasticsearch日志存储目录
+#          data: ./elasticsearch/data #elasticsearch数据存储目录
 
+  datasource:
+    username: xbh
+    password: 123456
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://39.96.81.234:3306/xbh?useSSL=false&useUnicode=true&characterEncoding=utf8
 
-#elasticsearch:
-## 9200端口是用来让HTTP REST API来访问ElasticSearch，而9300端口是传输层监听的默认端口
-#  ip: localhost
-#  port: 9300
-#  poll: 5
-
-
-
+mybatis:
+  mapper-locations: classpath:mapper/*Mapper.xml
+  type-aliases-package: com.fs.common.entity
 
