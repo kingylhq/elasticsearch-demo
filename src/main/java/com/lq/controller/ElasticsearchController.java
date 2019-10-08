@@ -9,6 +9,7 @@ import com.lq.utils.UUIDUtil;
 import com.lq.vo.ArticleVO;
 import com.lq.vo.R;
 import lombok.extern.slf4j.Slf4j;
+import org.elasticsearch.common.text.Text;
 import org.elasticsearch.index.query.*;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,7 @@ import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.Resource;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -35,7 +37,7 @@ import java.util.Map;
 public class ElasticsearchController {
 
     // 测试索引（数据库）
-    private String indexName = "test_index";
+    private String indexName = "index_article";
 
     // 测试类型（表）
     private String type = "article";
@@ -43,6 +45,8 @@ public class ElasticsearchController {
     @Autowired
     private ElasticsearchTemplate elasticsearchTemplate;
 
+//    @Resource
+//    private ArticleRepository articleRepository;
 
     /**
      * 添加索引
@@ -51,32 +55,57 @@ public class ElasticsearchController {
     @PostMapping("/createIndex")
     public R createIndex (@RequestParam String index) {
 //        Boolean index = ElasticsearchUtil.createIndex(indexName);
-        boolean b = elasticsearchTemplate.createIndex(index);
+//        boolean b = elasticsearchTemplate.createIndex(index);
+
+        elasticsearchTemplate.createIndex(Article.class);
+        return R.ok(null);
+    }
+
+    /**
+     * 删除索引
+     * @return
+     */
+    @PostMapping("/deleteIndex")
+    public R deleteIndex (@RequestParam String index) {
+        boolean b = elasticsearchTemplate.deleteIndex(index);
         return R.ok(b);
+    }
+
+    /**
+     * 删除索引
+     * @return
+     */
+    @GetMapping("/getMapping")
+    public R getMapping (@RequestParam String index, @RequestParam String type) {
+        Map<String, Object> map = elasticsearchTemplate.getMapping(index, type);
+        return R.ok(map);
     }
 
     /**
      * 保存数据
+     * @RequestBody ArticleVO model
      * @return
      */
     @PostMapping("/save")
-    public R save (@RequestBody Map<String, Object> map) {
-        log.info("添加数据: {} ", map);
+    public R save (@RequestBody ArticleVO model) {
 
+        Article article = new Article();
         String salt = UUIDUtil.salt(32);
-        map.put("id", salt);
-        map.put("createTime", new Date());
-//        JSONObject jsonObject = JSONObject.parseObject(JSONObject.toJSON(model).toString());
-//        String s = ElasticsearchUtil.addData(jsonObject, indexName, type, salt);
+        article.setId(salt);
+        article.setTitle(model.getTitle());
+        article.setArticleSource(model.getArticleSource());
+        article.setCreateTime(new Date().getTime());
+        JSONObject jsonObject = JSONObject.parseObject(JSONObject.toJSON(article).toString());
+        log.info("添加数据: {} ", jsonObject);
+        String s = ElasticsearchUtil.addData(jsonObject, indexName, type, salt);
 
-//        JSONObject jsonObject = JSONObject.parseObject(JSONObject.toJSON(model).toString());
-        boolean b = elasticsearchTemplate.putMapping(Article.class, map);
-        return R.ok(b);
+//        boolean b = elasticsearchTemplate.putMapping("index_article", "article", jsonObject);
+        return R.ok(null);
     }
 
     /**
      * 根据id数据
-     * @param id
+     * @param id，
      * @return
      */
     @GetMapping("/info/{id}")
