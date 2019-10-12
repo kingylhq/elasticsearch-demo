@@ -13,7 +13,7 @@ import java.util.Date;
  * @Time: 17:18
  */
 @Data
-public class ArticleVO {
+public class ArticleVO extends Page {
 
     private String id;
 

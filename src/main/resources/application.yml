@@ -18,7 +18,7 @@ spring:
     elasticsearch:
       cluster-name: my-application
       # 配置es节点信息，逗号分隔，如果没有指定，则启动ClientNode
-      cluster-nodes: localhost:9300
+      cluster-nodes: localhost:9200
       repositories:
         enabled: true
 #      properties:
@@ -34,5 +34,5 @@ spring:
 
 mybatis:
   mapper-locations: classpath:mapper/*Mapper.xml
-  type-aliases-package: com.fs.common.entity
+  type-aliases-package: com.lq.entity
 

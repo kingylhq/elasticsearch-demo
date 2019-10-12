@@ -223,7 +223,8 @@ public class ElasticsearchUtil {
         searchRequestBuilder.setQuery(query);
 
         // 分页
-        searchRequestBuilder.setFrom(startPage).setSize(pageSize);
+        Integer offect = (startPage - 1) * pageSize;
+        searchRequestBuilder.setFrom(offect).setSize(pageSize);
         // 设置是否按查询匹配度排序
         searchRequestBuilder.setExplain(true);
 

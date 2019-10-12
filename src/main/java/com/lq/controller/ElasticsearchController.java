@@ -9,18 +9,34 @@ import com.lq.utils.UUIDUtil;
 import com.lq.vo.ArticleVO;
 import com.lq.vo.R;
 import lombok.extern.slf4j.Slf4j;
+import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.common.text.Text;
 import org.elasticsearch.index.query.*;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.elasticsearch.core.DefaultResultMapper;
 import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
+import org.springframework.data.elasticsearch.core.SearchResultMapper;
+import org.springframework.data.elasticsearch.core.aggregation.AggregatedPage;
+import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
+import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
+import org.springframework.data.elasticsearch.core.query.SearchQuery;
+import org.springframework.data.elasticsearch.core.query.StringQuery;
+import org.springframework.data.util.CloseableIterator;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+
+import static org.elasticsearch.index.query.QueryBuilders.queryStringQuery;
 
 /**
  * Created with IntelliJ IDEA.
@@ -165,11 +181,64 @@ public class ElasticsearchController {
 //        boolQuery.must(QueryBuilders.rangeQuery("createTime").from(start)
 //                .to(end));
         String source = jsonObject.getString("articleSource");
-        QueryBuilder queryBuilder = QueryBuilders.wildcardQuery("articleSource.keyword", "*"+source+"*");
+        MatchAllQueryBuilder matchAllQueryBuilder = QueryBuilders.matchAllQuery();
+//        QueryBuilder queryBuilder = QueryBuilders.wildcardQuery("articleSource.keyword", "*"+source+"*");
         ElasticsearchPage list = ElasticsearchUtil.searchDataPage(indexName, type, jsonObject.getInteger("pageNumber"),
-                jsonObject.getInteger("pageSize"), queryBuilder, null, null, null);
+                jsonObject.getInteger("pageSize"), matchAllQueryBuilder, null, null, null);
 
         return R.ok(list);
+    }
+
+
+    /********************************************* ElasticsearchTemplate查询****************************************************/
+    /**
+     * 聚合查询
+     * @param keyword
+     * @return
+     */
+    @GetMapping("/all")
+    public R getAll(@RequestParam String keyword) {
+        SearchQuery searchQuery = new NativeSearchQueryBuilder()
+                .withQuery(QueryBuilders.queryStringQuery(keyword))
+                .build();
+        List<Article> list = elasticsearchTemplate.queryForList(searchQuery, Article.class);
+
+        return null;
+    }
+
+    /**
+     * 分页模糊查询
+     * @param model
+     * @return
+     */
+    @PostMapping("/page")
+    public R page (@RequestBody ArticleVO model) {
+        String[] fields = new String[]{"id", "title", "articleSource"};
+        Integer pageSize = model.getPageSize();
+        int offect = (model.getPageNumber() - 1) * pageSize;
+        SearchQuery searchQuery = new NativeSearchQueryBuilder()
+//                .withQuery(QueryBuilders.matchAllQuery())
+                .withQuery(QueryBuilders.matchQuery("title", model.getTitle()))
+                .withIndices(indexName)
+                .withTypes(type)
+                .withFields(fields)
+                .withPageable(PageRequest.of(offect, pageSize))
+                .build();
+
+        // 查询
+        CloseableIterator<Article> stream = elasticsearchTemplate.stream(searchQuery, Article.class);
+        AggregatedPage<Article> aggregated = elasticsearchTemplate.queryForPage(searchQuery, Article.class);
+        if (aggregated != null) {
+            // 数据集合
+            List<Article> content = aggregated.getContent();
+            // 总数
+            long totalElements = aggregated.getTotalElements();
+            int totalPages = aggregated.getTotalPages();
+            int size = aggregated.getSize();
+            int number = aggregated.getNumber();
+        }
+        return null;
+
     }
 
 
