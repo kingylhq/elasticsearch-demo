@@ -66,7 +66,7 @@ public class ElasticsearchPage {
         this.recordCount = recordCount;
         this.recordList = recordList;
 
-        // 计算总页码
+        // 计算总页码 （9 + 3 -1）/ 3 = 3
         pageCount = (recordCount + pageSize - 1) / pageSize;
 
         // 计算 beginPageIndex 和 endPageIndex

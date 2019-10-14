@@ -183,7 +183,7 @@ public class ElasticsearchUtil {
      *
      * @param index          索引名称
      * @param type           类型名称,可传入多个type逗号分隔
-     * @param startPage      当前页
+     * @param pageNumber     当前页
      * @param pageSize       每页显示条数
      * @param query          查询条件
      * @param fields         需要显示的字段，逗号分隔（缺省为全部字段）
@@ -191,14 +191,14 @@ public class ElasticsearchUtil {
      * @param highlightField 高亮字段
      * @return
      */
-    public static ElasticsearchPage searchDataPage(String index, String type, Integer startPage, Integer pageSize,
+    public static ElasticsearchPage searchDataPage(String index, String type, Integer pageNumber, Integer pageSize,
                                                    QueryBuilder query, String fields, String sortField,
                                                    String highlightField) {
 
         // 构建查询请求
         SearchRequestBuilder searchRequestBuilder = client.prepareSearch(index);
         if (!StringUtils.isEmpty(type)) {
-            searchRequestBuilder.setTypes(type.split(","));
+            searchRequestBuilder.setTypes(type);
         }
 
         searchRequestBuilder.setSearchType(SearchType.QUERY_THEN_FETCH);
@@ -222,8 +222,8 @@ public class ElasticsearchUtil {
 //        searchRequestBuilder.setQuery(QueryBuilders.matchAllQuery());
         searchRequestBuilder.setQuery(query);
 
-        // 分页
-        Integer offect = (startPage - 1) * pageSize;
+        // 分页、求偏移量(从哪个位置开始)
+        Integer offect = (pageNumber - 1) * pageSize;
         searchRequestBuilder.setFrom(offect).setSize(pageSize);
         // 设置是否按查询匹配度排序
         searchRequestBuilder.setExplain(true);
@@ -242,7 +242,7 @@ public class ElasticsearchUtil {
         if (searchResponse.status().getStatus() == 200) {
             // 处理数据
             List<Map<String, Object>> mapList = setSearchResponse(searchResponse, highlightField);
-            return new ElasticsearchPage(startPage, pageSize, (int) totalHits, mapList);
+            return new ElasticsearchPage(pageNumber, pageSize, (int) totalHits, mapList);
         }
         return null;
     }
@@ -264,7 +264,7 @@ public class ElasticsearchUtil {
 
         SearchRequestBuilder searchRequestBuilder = client.prepareSearch(index);
         if (!StringUtils.isEmpty(type)) {
-            searchRequestBuilder.setTypes(type.split(","));
+            searchRequestBuilder.setTypes(type);
         }
 
         if (!StringUtils.isEmpty(highlightField)) {

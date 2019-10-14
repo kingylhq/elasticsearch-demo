@@ -54,6 +54,7 @@ public class ElasticsearchConfig {
             log.error("初始化异常：{}", e.getMessage());
             e.printStackTrace();
         }
+        log.info("初始化完毕Elasticsearch..................");
         return transportClient;
     }
 
