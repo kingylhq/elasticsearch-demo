@@ -3,8 +3,10 @@ package com.lq.config;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.common.transport.TransportAddress;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -22,15 +24,8 @@ import java.net.InetAddress;
 @Configuration
 public class ElasticsearchConfig {
 
-//    private String hostName = "192.168.0.113";
-    private String hostName = "localhost";
-
-//    java端口9300，http端口9200，不要把 9200 端口放代码中去连接...
-    private String port = "9300";
-
-    private String clusterName = "my-application" ;
-
-    private Integer poolSize = 5;
+    @Autowired
+    private ElasticsearchProperties properties;
 
     @Bean(name = "transportClient")
     public TransportClient transportClient () {
@@ -40,15 +35,18 @@ public class ElasticsearchConfig {
         try {
             Settings build = Settings.builder()
                     // 集群名称
-                    .put("cluster.name", clusterName)
+                    .put("cluster.name", properties.getClusterName())
                     // 增加嗅探机制，找到ES集群
                     .put("client.transport.sniff", true)
                     // 增加线程池个数，暂时设为5
-                    .put("thread_pool.search.size", poolSize)
+                    .put("thread_pool.search.size", properties.getPoolSize())
+//                    .put("searchguard.ssl.transport.enabled", true)
                     .build();
 
             transportClient = new PreBuiltTransportClient(build);
-            TransportAddress transportAddress = new TransportAddress(InetAddress.getByName(hostName), Integer.valueOf(port));
+            String host = properties.getHost();
+            InetAddress byName = InetAddress.getByName(host);
+            TransportAddress transportAddress = new InetSocketTransportAddress(byName, properties.getPort());
             transportClient.addTransportAddress(transportAddress);
         } catch (Exception e) {
             log.error("初始化异常：{}", e.getMessage());
@@ -57,6 +55,27 @@ public class ElasticsearchConfig {
         log.info("初始化完毕Elasticsearch..................");
         return transportClient;
     }
+
+
+//    Settings settings = Settings.builder()
+//            .put("path.home", ".")
+//            .put("path.conf", "E:\\workspace_idea\\es_test\\src\\main\\resources")
+//            .put("cluster.name", "es-cluster")
+//            .put("searchguard.ssl.transport.enabled", true)
+//            .put("searchguard.ssl.transport.keystore_filepath", "sgadmin-keystore.jks")
+//            .put("searchguard.ssl.transport.truststore_filepath", "truststore.jks")
+//            .put("searchguard.ssl.http.keystore_password", "password")
+//            .put("searchguard.ssl.http.truststore_password", "password")
+//            .put("searchguard.ssl.transport.keystore_password", "password")
+//            .put("searchguard.ssl.transport.truststore_password", "password")
+//            .put("searchguard.ssl.transport.enforce_hostname_verification", false)
+//            .build();
+//
+//    TransportClient client = new PreBuiltTransportClient(settings, SearchGuardSSLPlugin.class)
+//            .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName("ip-1"), 9300))
+//            .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName("ip-2"), 9300))
+//            .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName("ip-3"), 9300));
+
 
 
 }

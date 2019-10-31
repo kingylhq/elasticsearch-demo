@@ -3,7 +3,6 @@ package com.lq.controller;
 import com.alibaba.fastjson.JSONObject;
 import com.lq.entity.Article;
 import com.lq.model.ElasticsearchPage;
-import com.lq.repository.ArticleRepository;
 import com.lq.utils.ElasticsearchUtil;
 import com.lq.utils.UUIDUtil;
 import com.lq.vo.ArticleVO;
@@ -181,10 +180,14 @@ public class ElasticsearchController {
 //        boolQuery.must(QueryBuilders.rangeQuery("createTime").from(start)
 //                .to(end));
         String source = jsonObject.getString("articleSource");
-        MatchAllQueryBuilder matchAllQueryBuilder = QueryBuilders.matchAllQuery();
-//        QueryBuilder queryBuilder = QueryBuilders.wildcardQuery("articleSource.keyword", "*"+source+"*");
+        QueryBuilder queryBuilder;
+        if (StringUtils.isEmpty(source)) {
+            queryBuilder = QueryBuilders.matchAllQuery();
+        } else {
+            queryBuilder = QueryBuilders.wildcardQuery("articleSource.keyword", "*"+source+"*");
+        }
         ElasticsearchPage list = ElasticsearchUtil.searchDataPage(indexName, type, jsonObject.getInteger("pageNumber"),
-                jsonObject.getInteger("pageSize"), matchAllQueryBuilder, null, null, null);
+                jsonObject.getInteger("pageSize"), queryBuilder, null, null, null);
 
         return R.ok(list);
     }

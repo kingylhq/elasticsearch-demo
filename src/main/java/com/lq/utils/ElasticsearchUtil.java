@@ -234,7 +234,7 @@ public class ElasticsearchUtil {
         // 执行搜索,返回响应结果
         SearchResponse searchResponse = searchRequestBuilder.execute().actionGet();
         // 数据总数
-        long totalHits = searchResponse.getHits().getTotalHits().value;
+        long totalHits = searchResponse.getHits().getTotalHits();
         // 返回的条数
         int length = searchResponse.getHits().getHits().length;
         log.info("共查询到【{}】条数据,处理数据条数【{}】", totalHits, length);
@@ -295,7 +295,7 @@ public class ElasticsearchUtil {
 
         SearchResponse searchResponse = searchRequestBuilder.execute().actionGet();
 
-        long totalHits = searchResponse.getHits().getTotalHits().value;
+        long totalHits = searchResponse.getHits().getTotalHits();
         long length = searchResponse.getHits().getHits().length;
 
         log.info("共查询到【{}】条数据, 处理数据条数【{}】", totalHits, length);

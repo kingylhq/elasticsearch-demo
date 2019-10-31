@@ -74,9 +74,8 @@ public class ElasticsearchPage {
         if (pageCount <= 10) {
             beginPageIndex = 1;
             endPageIndex = pageCount;
-        }
-        // 总页数多于10页，则显示当前页附近的共10个页码
-        else {
+        } else {
+            // 总页数多于10页，则显示当前页附近的共10个页码
             // 当前页附近的共10个页码（前4个 + 当前页 + 后5个）
             beginPageIndex = pageNumber - 4;
             endPageIndex = pageNumber + 5;
