@@ -13,15 +13,14 @@ logging:
   config: classpath:logback-spring.xml
 
 spring:
-#  data:
-#    # 9200 端口是用来让HTTP REST API来访问ElasticSearch，而9300端口是传输层监听的默认端口
-#    elasticsearch:
-#      cluster-name: my-application
-#      # 配置es节点信息，逗号分隔，如果没有指定，则启动ClientNode
-##      cluster-nodes: localhost:9200
-#      cluster-nodes: http://39.106.100.238:9200
-#      repositories:
-#        enabled: true
+  data:
+    # 9200 端口是用来让HTTP REST API来访问ElasticSearch，而9300端口是传输层监听的默认端口
+    elasticsearch:
+      cluster-name: my-application
+      # 配置es节点信息，逗号分隔，如果没有指定，则启动ClientNode
+      cluster-nodes: 39.106.100.238:9300
+      repositories:
+        enabled: true
   #      properties:
 #        path:
 #          logs: ./elasticsearch/log #elasticsearch日志存储目录

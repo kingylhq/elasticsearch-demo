@@ -69,8 +69,7 @@ public class ElasticsearchController {
      */
     @PostMapping("/createIndex")
     public R createIndex (@RequestParam String index) {
-//        Boolean index = ElasticsearchUtil.createIndex(indexName);
-//        boolean b = elasticsearchTemplate.createIndex(index);
+//        Boolean b = ElasticsearchUtil.createIndex(index);
 
         elasticsearchTemplate.createIndex(Article.class);
         return R.ok(null);

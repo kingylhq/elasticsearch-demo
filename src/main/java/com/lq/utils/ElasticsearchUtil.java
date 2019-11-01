@@ -45,7 +45,7 @@ import java.util.Map;
 @Component
 public class ElasticsearchUtil {
 
-    @Autowired
+    @Autowired(required = false)
     private TransportClient transportClient;
 
     private static TransportClient client;
