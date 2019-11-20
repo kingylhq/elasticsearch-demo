@@ -3,7 +3,6 @@ package com.lq.config;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.common.transport.TransportAddress;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +45,10 @@ public class ElasticsearchConfig {
             transportClient = new PreBuiltTransportClient(build);
             String host = properties.getHost();
             InetAddress byName = InetAddress.getByName(host);
-            TransportAddress transportAddress = new InetSocketTransportAddress(byName, properties.getPort());
+            // 5.6.9
+//            TransportAddress transportAddress = new InetSocketTransportAddress(byName, properties.getPort());
+            // 6.8.0
+            TransportAddress transportAddress = new TransportAddress(byName, properties.getPort());
             transportClient.addTransportAddress(transportAddress);
         } catch (Exception e) {
             log.error("初始化异常：{}", e.getMessage());

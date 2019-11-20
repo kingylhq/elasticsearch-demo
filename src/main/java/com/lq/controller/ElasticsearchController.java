@@ -2,12 +2,15 @@ package com.lq.controller;
 
 import com.alibaba.fastjson.JSONObject;
 import com.lq.entity.Article;
+import com.lq.entity.ArticleTableInfo;
 import com.lq.model.ElasticsearchPage;
+import com.lq.utils.BeanMapperUtil;
 import com.lq.utils.ElasticsearchUtil;
 import com.lq.utils.UUIDUtil;
 import com.lq.vo.ArticleVO;
 import com.lq.vo.R;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.common.text.Text;
 import org.elasticsearch.index.query.*;
@@ -25,15 +28,15 @@ import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.data.elasticsearch.core.query.SearchQuery;
 import org.springframework.data.elasticsearch.core.query.StringQuery;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.data.util.CloseableIterator;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.elasticsearch.index.query.QueryBuilders.queryStringQuery;
 
@@ -60,8 +63,42 @@ public class ElasticsearchController {
     @Autowired
     private ElasticsearchTemplate elasticsearchTemplate;
 
+    @Autowired
+    MongoTemplate mongoTemplate;
+
 //    @Resource
 //    private ArticleRepository articleRepository;
+
+    /**
+     * 批量添加文章
+     * @return
+     */
+    @PostMapping("/batchSaveArticle")
+    public R batchSaveArticle () {
+
+        List list = new ArrayList<>();
+        list.add(Aggregation.project("_id", "article_title", "article_picture_url", "article_source", "channel_id", "create_time"));
+        // 需要查询的数量 queryCount
+        list.add(Aggregation.limit(10000));
+        list.add(Aggregation.sort(new Sort(new Sort.Order(Sort.Direction.DESC, "create_time"))));
+        Aggregation aggregation = Aggregation.newAggregation(list);
+        AggregationResults<ArticleTableInfo> outputTypeCount = mongoTemplate.aggregate(aggregation, "c_article", ArticleTableInfo.class);
+        List<ArticleTableInfo> infoList = outputTypeCount.getMappedResults();
+        if (CollectionUtils.isNotEmpty(infoList)) {
+            for (ArticleTableInfo obj : infoList) {
+                Article article = new Article();
+                String salt = UUIDUtil.salt(32);
+                article.setId(salt);
+                article.setTitle(obj.getArticleTitle());
+                article.setArticleSource(obj.getArticleSource());
+                article.setCreateTime(new Date().getTime());
+                JSONObject jsonObject = JSONObject.parseObject(JSONObject.toJSON(article).toString());
+                log.info("添加数据: {} ", jsonObject);
+                String s = ElasticsearchUtil.addData(jsonObject, indexName, type, salt);
+            }
+        }
+        return R.ok("very good");
+    }
 
     /**
      * 添加索引
@@ -178,12 +215,12 @@ public class ElasticsearchController {
 //        long end = 1569855600L;
 //        boolQuery.must(QueryBuilders.rangeQuery("createTime").from(start)
 //                .to(end));
-        String source = jsonObject.getString("articleSource");
+        String title = jsonObject.getString("title");
         QueryBuilder queryBuilder;
-        if (StringUtils.isEmpty(source)) {
+        if (StringUtils.isEmpty(title)) {
             queryBuilder = QueryBuilders.matchAllQuery();
         } else {
-            queryBuilder = QueryBuilders.wildcardQuery("articleSource.keyword", "*"+source+"*");
+            queryBuilder = QueryBuilders.wildcardQuery("title.keyword", "*"+title+"*");
         }
         ElasticsearchPage list = ElasticsearchUtil.searchDataPage(indexName, type, jsonObject.getInteger("pageNumber"),
                 jsonObject.getInteger("pageSize"), queryBuilder, null, null, null);
@@ -194,7 +231,7 @@ public class ElasticsearchController {
 
     /********************************************* ElasticsearchTemplate查询****************************************************/
     /**
-     * 聚合查询
+     * 聚合查询、貌似有模糊查询加 分词查询的功能
      * @param keyword
      * @return
      */
@@ -205,30 +242,42 @@ public class ElasticsearchController {
                 .build();
         List<Article> list = elasticsearchTemplate.queryForList(searchQuery, Article.class);
 
-        return null;
+        return R.ok(list);
     }
 
     /**
-     * 分页模糊查询
+     * elasticsearchTemplate 分页模糊查询
      * @param model
      * @return
      */
     @PostMapping("/page")
     public R page (@RequestBody ArticleVO model) {
+        // pageNumber、pageSize不为空
         String[] fields = new String[]{"id", "title", "articleSource"};
         Integer pageSize = model.getPageSize();
+        // 计算偏移量
         int offect = (model.getPageNumber() - 1) * pageSize;
+        // AbstractQueryBuilder 是超级父类
+        AbstractQueryBuilder abstractQueryBuilder;
+        if (StringUtils.isEmpty(model.getTitle())) {
+            abstractQueryBuilder = QueryBuilders.matchAllQuery();
+        } else {
+            abstractQueryBuilder =  QueryBuilders.matchQuery("title", model.getTitle());
+        }
+        // 组装查询条件
         SearchQuery searchQuery = new NativeSearchQueryBuilder()
-//                .withQuery(QueryBuilders.matchAllQuery())
-                .withQuery(QueryBuilders.matchQuery("title", model.getTitle()))
+                .withQuery(abstractQueryBuilder)
+                // 索引名称
                 .withIndices(indexName)
+                // type名称
                 .withTypes(type)
+                // 返回字段
                 .withFields(fields)
+                // 分页
                 .withPageable(PageRequest.of(offect, pageSize))
                 .build();
 
         // 查询
-        CloseableIterator<Article> stream = elasticsearchTemplate.stream(searchQuery, Article.class);
         AggregatedPage<Article> aggregated = elasticsearchTemplate.queryForPage(searchQuery, Article.class);
         if (aggregated != null) {
             // 数据集合
@@ -238,6 +287,16 @@ public class ElasticsearchController {
             int totalPages = aggregated.getTotalPages();
             int size = aggregated.getSize();
             int number = aggregated.getNumber();
+
+            int pageNumber = number / size + 1;
+
+            log.info(":{}, :{}, :{} , :{}", totalElements, totalPages, size, number);
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("dataList", content);
+            jsonObject.put("recordCount", totalElements);
+            jsonObject.put("pageNumber", pageNumber);
+            jsonObject.put("pageSize", size);
+            return R.ok(jsonObject);
         }
         return null;
 
