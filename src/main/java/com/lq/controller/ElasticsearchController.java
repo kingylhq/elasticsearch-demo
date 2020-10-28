@@ -4,41 +4,32 @@ import com.alibaba.fastjson.JSONObject;
 import com.lq.entity.Article;
 import com.lq.entity.ArticleTableInfo;
 import com.lq.model.ElasticsearchPage;
-import com.lq.utils.BeanMapperUtil;
 import com.lq.utils.ElasticsearchUtil;
 import com.lq.utils.UUIDUtil;
 import com.lq.vo.ArticleVO;
 import com.lq.vo.R;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.common.text.Text;
-import org.elasticsearch.index.query.*;
-import org.springframework.beans.BeanUtils;
+import org.elasticsearch.index.query.AbstractQueryBuilder;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.elasticsearch.core.DefaultResultMapper;
 import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
-import org.springframework.data.elasticsearch.core.SearchResultMapper;
 import org.springframework.data.elasticsearch.core.aggregation.AggregatedPage;
-import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.data.elasticsearch.core.query.SearchQuery;
-import org.springframework.data.elasticsearch.core.query.StringQuery;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.AggregationResults;
-import org.springframework.data.util.CloseableIterator;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
-import java.util.*;
-
-import static org.elasticsearch.index.query.QueryBuilders.queryStringQuery;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created with IntelliJ IDEA.
@@ -66,15 +57,13 @@ public class ElasticsearchController {
     @Autowired
     MongoTemplate mongoTemplate;
 
-//    @Resource
-//    private ArticleRepository articleRepository;
-
     /**
      * 批量添加文章
+     *
      * @return
      */
     @PostMapping("/batchSaveArticle")
-    public R batchSaveArticle () {
+    public R batchSaveArticle() {
 
         List list = new ArrayList<>();
         list.add(Aggregation.project("_id", "article_title", "article_picture_url", "article_source", "channel_id", "create_time"));
@@ -91,7 +80,7 @@ public class ElasticsearchController {
                 article.setId(salt);
                 article.setTitle(obj.getArticleTitle());
                 article.setArticleSource(obj.getArticleSource());
-                article.setCreateTime(new Date().getTime());
+                article.setCreateTime(System.currentTimeMillis());
                 JSONObject jsonObject = JSONObject.parseObject(JSONObject.toJSON(article).toString());
                 log.info("添加数据: {} ", jsonObject);
                 String s = ElasticsearchUtil.addData(jsonObject, indexName, type, salt);
@@ -102,10 +91,11 @@ public class ElasticsearchController {
 
     /**
      * 添加索引
+     *
      * @return
      */
     @PostMapping("/createIndex")
-    public R createIndex (@RequestParam String index) {
+    public R createIndex(@RequestParam String index) {
 //        Boolean b = ElasticsearchUtil.createIndex(index);
 
         elasticsearchTemplate.createIndex(Article.class);
@@ -114,38 +104,41 @@ public class ElasticsearchController {
 
     /**
      * 删除索引
+     *
      * @return
      */
     @PostMapping("/deleteIndex")
-    public R deleteIndex (@RequestParam String index) {
+    public R deleteIndex(@RequestParam String index) {
         boolean b = elasticsearchTemplate.deleteIndex(index);
         return R.ok(b);
     }
 
     /**
      * 删除索引
+     *
      * @return
      */
     @GetMapping("/getMapping")
-    public R getMapping (@RequestParam String index, @RequestParam String type) {
+    public R getMapping(@RequestParam String index, @RequestParam String type) {
         Map<String, Object> map = elasticsearchTemplate.getMapping(index, type);
         return R.ok(map);
     }
 
     /**
      * 保存数据
-     * @RequestBody ArticleVO model
+     *
      * @return
+     * @RequestBody ArticleVO model
      */
     @PostMapping("/save")
-    public R save (@RequestBody ArticleVO model) {
+    public R save(@RequestBody ArticleVO model) {
 
         Article article = new Article();
         String salt = UUIDUtil.salt(32);
         article.setId(salt);
         article.setTitle(model.getTitle());
         article.setArticleSource(model.getArticleSource());
-        article.setCreateTime(new Date().getTime());
+        article.setCreateTime(System.currentTimeMillis());
         JSONObject jsonObject = JSONObject.parseObject(JSONObject.toJSON(article).toString());
         log.info("添加数据: {} ", jsonObject);
         String s = ElasticsearchUtil.addData(jsonObject, indexName, type, salt);
@@ -156,6 +149,7 @@ public class ElasticsearchController {
 
     /**
      * 根据id数据
+     *
      * @param id，
      * @return
      */
@@ -172,11 +166,12 @@ public class ElasticsearchController {
     /**
      * 查询数据
      * 模糊查询
+     *
      * @param articleVO
      * @return
      */
     @PostMapping("/query")
-    public R query (@RequestBody ArticleVO articleVO) {
+    public R query(@RequestBody ArticleVO articleVO) {
         BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
 //        范围查询
 //        queryBuilder.must(QueryBuilders.rangeQuery("createTime").from("").to(""));
@@ -187,6 +182,7 @@ public class ElasticsearchController {
                 "title,articleSource", null, "title");
         return R.ok(mapList);
     }
+
     /**
      * 通配符查询数据
      * 通配符查询 ? 用来匹配1个任意字符，* 用来匹配零个或者多个字符
@@ -195,7 +191,7 @@ public class ElasticsearchController {
      */
     @PostMapping("/queryWildcardData")
     public R queryWildcardData(@RequestBody ArticleVO articleVO) {
-        QueryBuilder queryBuilder = QueryBuilders.wildcardQuery("title.keyword", "*"+articleVO.getTitle()+"*");
+        QueryBuilder queryBuilder = QueryBuilders.wildcardQuery("title.keyword", "*" + articleVO.getTitle() + "*");
 
         List<Map<String, Object>> mapList = ElasticsearchUtil.searchListData(indexName, type, queryBuilder, 10,
                 "title,articleSource", null, null);
@@ -204,6 +200,7 @@ public class ElasticsearchController {
 
     /**
      * 分页查询
+     *
      * @param jsonObject
      * @return
      */
@@ -220,7 +217,7 @@ public class ElasticsearchController {
         if (StringUtils.isEmpty(title)) {
             queryBuilder = QueryBuilders.matchAllQuery();
         } else {
-            queryBuilder = QueryBuilders.wildcardQuery("title.keyword", "*"+title+"*");
+            queryBuilder = QueryBuilders.wildcardQuery("title.keyword", "*" + title + "*");
         }
         ElasticsearchPage list = ElasticsearchUtil.searchDataPage(indexName, type, jsonObject.getInteger("pageNumber"),
                 jsonObject.getInteger("pageSize"), queryBuilder, null, null, null);
@@ -232,6 +229,7 @@ public class ElasticsearchController {
     /********************************************* ElasticsearchTemplate查询****************************************************/
     /**
      * 聚合查询、貌似有模糊查询加 分词查询的功能
+     *
      * @param keyword
      * @return
      */
@@ -247,11 +245,12 @@ public class ElasticsearchController {
 
     /**
      * elasticsearchTemplate 分页模糊查询
+     *
      * @param model
      * @return
      */
     @PostMapping("/page")
-    public R page (@RequestBody ArticleVO model) {
+    public R page(@RequestBody ArticleVO model) {
         // pageNumber、pageSize不为空
         String[] fields = new String[]{"id", "title", "articleSource"};
         Integer pageSize = model.getPageSize();
@@ -262,7 +261,7 @@ public class ElasticsearchController {
         if (StringUtils.isEmpty(model.getTitle())) {
             abstractQueryBuilder = QueryBuilders.matchAllQuery();
         } else {
-            abstractQueryBuilder =  QueryBuilders.matchQuery("title", model.getTitle());
+            abstractQueryBuilder = QueryBuilders.matchQuery("title", model.getTitle());
         }
         // 组装查询条件
         SearchQuery searchQuery = new NativeSearchQueryBuilder()
@@ -301,12 +300,6 @@ public class ElasticsearchController {
         return null;
 
     }
-
-
-
-
-
-
 
 
 }

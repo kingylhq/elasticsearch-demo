@@ -51,16 +51,17 @@ public class ElasticsearchUtil {
     private static TransportClient client;
 
     @PostConstruct
-    public void init () {
+    public void init() {
         client = this.transportClient;
     }
 
     /**
      * 判断索引是否存在
+     *
      * @param index 索引
      * @return
      */
-    public static Boolean checkIndexExists (String index) {
+    public static Boolean checkIndexExists(String index) {
         // 获取返回数据
         IndicesExistsResponse response = client.admin().indices().exists(new IndicesExistsRequest(index)).actionGet();
         boolean exists = response.isExists();
@@ -72,10 +73,11 @@ public class ElasticsearchUtil {
 
     /**
      * 创建索引(类似mysql数据库)
+     *
      * @param index
      * @return
      */
-    public static Boolean createIndex (String index) {
+    public static Boolean createIndex(String index) {
         if (checkIndexExists(index)) {
             return false;
         }
@@ -87,10 +89,11 @@ public class ElasticsearchUtil {
 
     /**
      * 删除索引
+     *
      * @param index
      * @return
      */
-    public static Boolean deleteIndex (String index) {
+    public static Boolean deleteIndex(String index) {
         if (checkIndexExists(index)) {
             log.info("删除索引失败......");
             return false;
@@ -103,11 +106,12 @@ public class ElasticsearchUtil {
 
     /**
      * 判断指定type在指定索引下是否存在
+     *
      * @param index
      * @param type
      * @return
      */
-    public static Boolean checkTypeExists (String index, String type) {
+    public static Boolean checkTypeExists(String index, String type) {
         return checkIndexExists(index) ? client.admin()
                 .indices()
                 .prepareTypesExists(index)
@@ -119,13 +123,14 @@ public class ElasticsearchUtil {
 
     /**
      * 添加数据
-     * @param jsonObject  具体数据文档
-     * @param index 索引
-     * @param type  类型
-     * @param id    id
+     *
+     * @param jsonObject 具体数据文档
+     * @param index      索引
+     * @param type       类型
+     * @param id         id
      * @return
      */
-    public static String addData (JSONObject jsonObject, String index, String type, String id) {
+    public static String addData(JSONObject jsonObject, String index, String type, String id) {
         IndexResponse response = client.prepareIndex(index, type, id).setSource(jsonObject).get();
         log.info("数据添加成功 : {}, id : {}", response.status().getStatus(), response.getId());
         return response.getId();
@@ -133,11 +138,12 @@ public class ElasticsearchUtil {
 
     /**
      * 根据id值删除数据
+     *
      * @param index
      * @param type
      * @param id
      */
-    public static void deleteDataById (String index, String type, String id) {
+    public static void deleteDataById(String index, String type, String id) {
         log.info("根据索引 ：{}， 类型 ：{}， id : {}删除数据", index, type, id);
         DeleteResponse response = client.prepareDelete(index, type, id).execute().actionGet();
         log.info("删除数据成功状态 ：{}", response.status().getStatus());
@@ -145,6 +151,7 @@ public class ElasticsearchUtil {
 
     /**
      * 通过ID 更新数据
+     *
      * @param jsonObject 要增加的数据
      * @param index      索引，类似数据库
      * @param type       类型，类似表
@@ -230,7 +237,7 @@ public class ElasticsearchUtil {
 
         // 打印内容，可以在Elasticsearch head 和kibana执行
         log.info("\n\r :{} ", searchRequestBuilder);
-        
+
         // 执行搜索,返回响应结果
         SearchResponse searchResponse = searchRequestBuilder.execute().actionGet();
         // 数据总数
@@ -259,8 +266,8 @@ public class ElasticsearchUtil {
      * @param highlightField 高亮字段
      * @return
      */
-    public static List<Map<String, Object>> searchListData (String index, String type, QueryBuilder query, Integer size,
-            String fields, String sortField, String highlightField) {
+    public static List<Map<String, Object>> searchListData(String index, String type, QueryBuilder query, Integer size,
+                                                           String fields, String sortField, String highlightField) {
 
         SearchRequestBuilder searchRequestBuilder = client.prepareSearch(index);
         if (!StringUtils.isEmpty(type)) {
@@ -314,7 +321,7 @@ public class ElasticsearchUtil {
      * @param searchResponse
      * @param highlightField
      */
-    private static List<Map<String, Object>> setSearchResponse (SearchResponse searchResponse, String highlightField) {
+    private static List<Map<String, Object>> setSearchResponse(SearchResponse searchResponse, String highlightField) {
         List<Map<String, Object>> sourceList = new ArrayList<>();
         StringBuffer stringBuffer = new StringBuffer();
 

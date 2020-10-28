@@ -31,13 +31,13 @@
     </appender>
 
     <root level="info">
-        <appender-ref ref="Logfile" />
+        <appender-ref ref="Logfile"/>
     </root>
 
     <!-- 日志级别 -->
-    <logger name="org.apache.ibatis" level="DEBUG" />
-    <logger name="org.mbatis.spring" level="DEBUG" />
-    <logger name="com.alibaba.druid" level="INFO" />
-    <logger name="com.fs" level="DEBUG" />
+    <logger name="org.apache.ibatis" level="DEBUG"/>
+    <logger name="org.mbatis.spring" level="DEBUG"/>
+    <logger name="com.alibaba.druid" level="INFO"/>
+    <logger name="com.fs" level="DEBUG"/>
 
 </configuration>

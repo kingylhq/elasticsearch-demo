@@ -28,7 +28,7 @@ public class MapTest {
         // 第一种：普遍使用，二次取值
         System.out.println("通过Map.keySet遍历key和value：");
         for (String key : map.keySet()) {
-            System.out.println("key= "+ key + " and value= " + map.get(key));
+            System.out.println("key= " + key + " and value= " + map.get(key));
         }
 
         // 第二种

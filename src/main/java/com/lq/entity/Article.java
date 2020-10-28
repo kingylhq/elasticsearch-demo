@@ -26,18 +26,24 @@ public class Article implements Serializable {
 
     private static final long serialVersionUID = -5087658155687251393L;
 
-    // 文章id
+    /**
+     * 文章id
+     */
     @Id
     private String id;
 
-    // 文章标题
+    /**
+     * 文章标题
+     */
     @Field(type = FieldType.Text)
     private String title;
 
     @Field(type = FieldType.Text)
     private String articleSource;
 
-    // 创建时间
+    /**
+     * 创建时间
+     */
 //    @Field(type = FieldType.Date, format = DateFormat.basic_date)
 //    @DateTimeFormat(pattern = "yyyy-MM-dd")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")

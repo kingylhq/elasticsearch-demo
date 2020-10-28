@@ -8,6 +8,7 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 
 /**
  * 启动类
+ *
  * @author liqian
  * 2019年9月27日16:37:30
  */

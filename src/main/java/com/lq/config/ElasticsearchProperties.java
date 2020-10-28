@@ -23,7 +23,7 @@ public class ElasticsearchProperties {
     // java端口9300，http端口9200，不要把 9200 端口放代码中去连接...
     private Integer port;
 
-    private String clusterName ;
+    private String clusterName;
 
     private Integer poolSize;
 

@@ -43,10 +43,11 @@ public class ArticleController {
 
     /**
      * 查询文章
+     *
      * @return
      */
     @PostMapping("/getArticle")
-    public R getArticle () {
+    public R getArticle() {
 
 
         return R.ok("very good");

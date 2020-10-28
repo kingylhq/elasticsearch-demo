@@ -74,25 +74,25 @@ public class ArticleTableInfo implements Serializable {
     private Long likeNum;
 
     /**
-     *  微信文章url
+     * 微信文章url
      */
     @Field("url")
     private String url;
 
     /**
-     *  来源，OUT：外部，内部：INSIDE
+     * 来源，OUT：外部，内部：INSIDE
      */
     @Field("source")
     private String source;
 
     /**
-     *  表态子项id(存数组，两个id)
+     * 表态子项id(存数组，两个id)
      */
     @Field("declare")
     private Long[] declare;
 
     /**
-     *  表态父id
+     * 表态父id
      */
     @Field("declareId")
     private Long declareId;

@@ -27,7 +27,7 @@ public class ElasticsearchConfig {
     private ElasticsearchProperties properties;
 
     @Bean(name = "transportClient")
-    public TransportClient transportClient () {
+    public TransportClient transportClient() {
         log.info("开始初始化Elasticsearch..................");
         TransportClient transportClient = null;
 
@@ -77,7 +77,6 @@ public class ElasticsearchConfig {
 //            .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName("ip-1"), 9300))
 //            .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName("ip-2"), 9300))
 //            .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName("ip-3"), 9300));
-
 
 
 }

@@ -4,6 +4,7 @@ package com.lq.test;
  * 鸟欲高飞先振翅
  * Created with IntelliJ IDEA.
  * Description: 简单冒泡排序
+ *
  * @author: liqian
  * @email 857264134@qq.com
  * @Date: 2019-11-19
@@ -24,7 +25,6 @@ public class BubbleSort {
     }
 
     /**
-     *
      * @param array
      */
     public static void sort(Integer[] array) {
@@ -38,7 +38,7 @@ public class BubbleSort {
             // 每次的趟数需要交换的次数
             for (int j = 0; j < length - 1 - i; j++) {
                 // 满足此条件，则降序排列
-                if (array[j] < array[j+1]) {
+                if (array[j] < array[j + 1]) {
                     int temp = array[j];
                     array[j] = array[j + 1];
                     array[j + 1] = temp;

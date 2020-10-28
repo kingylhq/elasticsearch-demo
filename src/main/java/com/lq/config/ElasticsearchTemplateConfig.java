@@ -28,7 +28,7 @@ public class ElasticsearchTemplateConfig {
 
     @ConditionalOnMissingBean
     @ConditionalOnBean(Client.class)
-    public ElasticsearchTemplate elasticsearchTemplate (Client client, ElasticsearchConverter converter) {
+    public ElasticsearchTemplate elasticsearchTemplate(Client client, ElasticsearchConverter converter) {
         return new ElasticsearchTemplate(client, converter);
     }
 }

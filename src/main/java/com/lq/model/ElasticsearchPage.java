@@ -22,7 +22,7 @@ public class ElasticsearchPage {
      * 当前页
      */
     private int pageNumber;
-    
+
     /**
      * 每页显示多少条
      */
@@ -32,7 +32,7 @@ public class ElasticsearchPage {
      * 总记录数
      */
     private int recordCount;
-    
+
     /**
      * 本页的数据列表
      */
