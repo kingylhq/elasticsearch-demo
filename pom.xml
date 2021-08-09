@@ -20,7 +20,7 @@
         <spring-boot-admin.version>2.1.5</spring-boot-admin.version>
         <commons-collections4.version>4.1</commons-collections4.version>
         <druid-spring-boot.version>1.1.9</druid-spring-boot.version>
-        <elasticsearch.version>6.8.0</elasticsearch.version>
+        <elasticsearch.version>6.8.17</elasticsearch.version>
     </properties>
 
     <dependencies>
